@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101827">
+  <meta name="description" content="Gestão Financeira Familiar — organização financeira e doméstica compartilhada.">
+  <title>GFF — Gestão Familiar</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <a class="brand" href="#" aria-label="GFF início">
+        <span class="brand-mark">G</span>
+        <span><strong>GFF</strong><small>GESTÃO FAMILIAR</small></span>
+      </a>
+      <div class="nav-label">VISÃO GERAL</div>
+      <nav class="nav-list">
+        <button class="nav-item active" data-view="dashboard"><span>▦</span> Dashboard</button>
+        <button class="nav-item" data-view="budget"><span>◫</span> Orçamento</button>
+        <button class="nav-item" data-view="transactions"><span>↕</span> Receitas e despesas</button>
+        <div class="nav-label">CASA</div>
+        <button class="nav-item" data-view="shopping"><span>🛒</span> Lista de compras</button>
+        <button class="nav-item" data-view="inventory"><span>▤</span> Estoque</button>
+        <div class="nav-label">PLANEJAMENTO</div>
+        <button class="nav-item" data-view="cards"><span>▣</span> Cartões e parcelas</button>
+        <button class="nav-item" data-view="bills"><span>▧</span> Contas e vencimentos</button>
+        <button class="nav-item" data-view="goals"><span>◎</span> Projetos de vida</button>
+        <button class="nav-item" data-view="reports"><span>▥</span> Relatórios</button>
+        <button class="nav-item" data-view="assistant"><span>✧</span> Assistente financeiro</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="family-chip"><span class="avatar">F</span><span><strong>Minha família</strong><small>Ambiente demonstrativo</small></span></div>
+        <span class="offline-pill"><i></i> Estrutura inicial</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
+        <div><p class="eyebrow">GESTÃO FINANCEIRA FAMILIAR</p><h1 id="pageTitle">Dashboard</h1></div>
+        <div class="top-actions"><span class="sync-status"><i></i> Modo demonstração</span><button class="profile" aria-label="Perfil">F</button></div>
+      </header>
+
+      <section class="view active-view" id="view-dashboard">
+        <div class="welcome-row"><div><h2>Visão geral da família</h2><p>Uma visão clara do dinheiro, dos compromissos e dos objetivos.</p></div><span class="month-tag">MÊS ATUAL · DEMO</span></div>
+        <div class="notice"><strong>Etapa 1 em construção</strong><span>Esta é a base visual e navegável. Os valores são demonstrativos; nenhum dado financeiro real está sendo salvo ou sincronizado ainda.</span></div>
+        <div class="metrics">
+          <article class="metric-card featured"><div class="metric-top"><span>Saldo disponível</span><span class="metric-icon">R$</span></div><strong>R$ 0,00</strong><small>Será calculado pelas contas e movimentações confirmadas.</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Receitas do mês</span><span class="metric-icon green">↗</span></div><strong>R$ 0,00</strong><small>Entradas registradas</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Despesas do mês</span><span class="metric-icon coral">↘</span></div><strong>R$ 0,00</strong><small>Saídas confirmadas</small></article>
+          <article class="metric-card"><div class="metric-top"><span>Compromissos futuros</span><span class="metric-icon purple">▣</span></div><strong>R$ 0,00</strong><small>Parcelas e contas previstas</small></article>
+        </div>
+        <div class="content-grid">
+          <article class="panel budget-panel"><div class="panel-heading"><div><h3>Orçamento por categoria</h3><p>Planejado versus realizado</p></div><span class="subtle-tag">Aguardando dados</span></div>
+            <div class="empty-chart"><div class="donut"><span>—</span></div><div><strong>Seu orçamento aparecerá aqui</strong><p>Depois de cadastrar a renda e definir as categorias, você acompanhará a distribuição do dinheiro.</p></div></div>
+            <div class="legend"><span><i class="dot blue"></i> Essenciais</span><span><i class="dot green"></i> Segurança</span><span><i class="dot purple"></i> Projetos</span><span><i class="dot orange"></i> Lazer</span></div>
+          </article>
+          <article class="panel"><div class="panel-heading"><div><h3>Próximos compromissos</h3><p>Contas e faturas a vencer</p></div><button class="text-button" data-go="bills">Ver todos</button></div><div class="empty-state"><span class="empty-icon">▧</span><strong>Nenhum compromisso cadastrado</strong><p>Quando você adicionar contas e cartões, os próximos vencimentos serão exibidos aqui.</p></div></article>
+        </div>
+        <div class="content-grid lower-grid">
+          <article class="panel"><div class="panel-heading"><div><h3>Atalhos</h3><p>Ações frequentes</p></div></div><div class="quick-actions">
+            <button data-go="transactions"><b>＋</b><span>Registrar despesa</span></button>
+            <button data-go="shopping"><b>🛒</b><span>Lista de compras</span></button>
+            <button data-go="inventory"><b>▤</b><span>Consultar estoque</span></button>
+            <button data-go="goals"><b>◎</b><span>Criar objetivo</span></button>
+          </div></article>
+          <article class="panel"><div class="panel-heading"><div><h3>Estoque doméstico</h3><p>Produtos que precisam de atenção</p></div><button class="text-button" data-go="inventory">Abrir estoque</button></div><div class="empty-state compact"><span class="empty-icon">▤</span><strong>Seu estoque ainda não foi cadastrado</strong><p>Os itens comprados poderão atualizar o estoque após a confirmação da compra.</p></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-placeholder">
+        <article class="panel placeholder-panel"><span class="placeholder-icon" id="placeholderIcon">✧</span><p class="eyebrow">MÓDULO PLANEJADO</p><h2 id="placeholderTitle">Orçamento</h2><p id="placeholderText">Este módulo será desenvolvido nas próximas etapas, mantendo a arquitetura e os padrões definidos.</p><span class="subtle-tag">Ainda não conectado ao banco de dados</span></article>
+      </section>
+      <footer>GFF · Gestão Familiar Financeira <span>Etapa 1 · Fundação visual</span></footer>
+    </main>
+  </div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
