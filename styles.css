@@ -43,3 +43,8 @@ body.login-active{overflow:hidden}
 
 /* Garantir que app-shell e login-screen não apareçam juntos */
 .app-shell[hidden],.login-screen[hidden]{display:none!important}
+
+/* Esqueci a senha */
+.forgot-wrap{margin:12px 0 0;text-align:center}
+.forgot-wrap a{font-size:12px;color:#5276cf;text-decoration:none;font-weight:600}
+.forgot-wrap a:hover{text-decoration:underline}

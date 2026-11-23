@@ -1,16 +1,16 @@
-/* GFF — Autenticação e vínculo familiar */
+/* GFF — Autenticação e vínculo familiar + recuperação de senha */
 (() => {
   "use strict";
 
   const GFF = (window.GFF = window.GFF || {});
 
-  // Estado da sessão atual
   GFF.session = {
     user: null,
     familyId: null,
     familyName: null,
     role: null,
-    ready: false
+    ready: false,
+    isRecovery: false
   };
 
   const els = {};
@@ -19,24 +19,52 @@
     els.loginScreen = document.getElementById("login-screen");
     els.appShell = document.querySelector(".app-shell");
     els.loginForm = document.getElementById("login-form");
+    els.recoveryForm = document.getElementById("recovery-form");
     els.email = document.getElementById("login-email");
     els.password = document.getElementById("login-password");
+    els.newPassword = document.getElementById("new-password");
+    els.confirmPassword = document.getElementById("confirm-password");
     els.togglePass = document.getElementById("toggle-password");
     els.loginBtn = document.getElementById("login-btn");
+    els.recoveryBtn = document.getElementById("recovery-btn");
     els.loginError = document.getElementById("login-error");
+    els.recoveryError = document.getElementById("recovery-error");
     els.loginLoading = document.getElementById("login-loading");
+    els.forgotLink = document.getElementById("forgot-password-link");
+    els.backToLogin = document.getElementById("back-to-login");
     els.familyChip = document.querySelector(".family-chip strong");
     els.familySub = document.querySelector(".family-chip small");
     els.profileBtn = document.querySelector(".profile");
     els.logoutBtn = document.getElementById("logout-btn");
     els.syncStatus = document.querySelector(".sync-status");
+    els.loginTitle = document.getElementById("login-title");
+    els.loginSubtitle = document.getElementById("login-subtitle");
   }
 
   function showLogin() {
+    GFF.session.isRecovery = false;
     if (els.loginScreen) els.loginScreen.hidden = false;
     if (els.appShell) els.appShell.hidden = true;
     document.body.classList.add("login-active");
-    clearError();
+
+    if (els.loginForm) els.loginForm.hidden = false;
+    if (els.recoveryForm) els.recoveryForm.hidden = true;
+    if (els.loginTitle) els.loginTitle.textContent = "Entrar na sua conta";
+    if (els.loginSubtitle) els.loginSubtitle.textContent = "Acesse o espaço financeiro da sua família de forma segura.";
+    clearErrors();
+  }
+
+  function showRecovery() {
+    GFF.session.isRecovery = true;
+    if (els.loginScreen) els.loginScreen.hidden = false;
+    if (els.appShell) els.appShell.hidden = true;
+    document.body.classList.add("login-active");
+
+    if (els.loginForm) els.loginForm.hidden = true;
+    if (els.recoveryForm) els.recoveryForm.hidden = false;
+    if (els.loginTitle) els.loginTitle.textContent = "Definir nova senha";
+    if (els.loginSubtitle) els.loginSubtitle.textContent = "Crie uma nova senha para a sua conta.";
+    clearErrors();
   }
 
   function showApp() {
@@ -46,27 +74,41 @@
     updateFamilyUI();
   }
 
-  function setLoading(isLoading) {
-    if (els.loginLoading) els.loginLoading.hidden = !isLoading;
-    if (els.loginBtn) {
-      els.loginBtn.disabled = isLoading;
-      els.loginBtn.textContent = isLoading ? "Entrando…" : "Entrar";
+  function setLoading(isLoading, mode = "login") {
+    if (mode === "login") {
+      if (els.loginLoading) els.loginLoading.hidden = !isLoading;
+      if (els.loginBtn) {
+        els.loginBtn.disabled = isLoading;
+        els.loginBtn.textContent = isLoading ? "Entrando…" : "Entrar";
+      }
+      if (els.email) els.email.disabled = isLoading;
+      if (els.password) els.password.disabled = isLoading;
+    } else {
+      if (els.recoveryBtn) {
+        els.recoveryBtn.disabled = isLoading;
+        els.recoveryBtn.textContent = isLoading ? "Salvando…" : "Salvar nova senha";
+      }
+      if (els.newPassword) els.newPassword.disabled = isLoading;
+      if (els.confirmPassword) els.confirmPassword.disabled = isLoading;
     }
-    if (els.email) els.email.disabled = isLoading;
-    if (els.password) els.password.disabled = isLoading;
   }
 
-  function showError(msg) {
-    if (els.loginError) {
-      els.loginError.textContent = msg;
-      els.loginError.hidden = false;
+  function showError(msg, target = "login") {
+    const el = target === "recovery" ? els.recoveryError : els.loginError;
+    if (el) {
+      el.textContent = msg;
+      el.hidden = false;
     }
   }
 
-  function clearError() {
+  function clearErrors() {
     if (els.loginError) {
       els.loginError.textContent = "";
       els.loginError.hidden = true;
+    }
+    if (els.recoveryError) {
+      els.recoveryError.textContent = "";
+      els.recoveryError.hidden = true;
     }
   }
 
@@ -95,7 +137,6 @@
   }
 
   async function loadFamilyContext(supabase, userId) {
-    // Busca o vínculo do usuário na família
     const { data: memberships, error: memErr } = await supabase
       .from("family_members")
       .select("family_id, role")
@@ -117,7 +158,6 @@
     GFF.session.familyId = membership.family_id;
     GFF.session.role = membership.role;
 
-    // Busca o nome da família
     const { data: family, error: famErr } = await supabase
       .from("families")
       .select("id, name")
@@ -125,35 +165,44 @@
       .single();
 
     if (famErr || !family) {
-      console.error("Erro ao buscar família:", famErr);
-      // Não bloqueia se o nome falhar; usa valor padrão
       GFF.session.familyName = "Família";
     } else {
       GFF.session.familyName = family.name || "Família";
     }
   }
 
-  async function handleSession(session) {
+  async function handleSession(session, event) {
     const supabase = await GFF.getSupabase();
+
+    // Modo recuperação de senha
+    if (event === "PASSWORD_RECOVERY") {
+      GFF.session.user = session?.user || null;
+      GFF.session.isRecovery = true;
+      GFF.session.ready = true;
+      showRecovery();
+      return;
+    }
 
     if (!session || !session.user) {
       GFF.session.user = null;
       GFF.session.familyId = null;
       GFF.session.familyName = null;
       GFF.session.role = null;
+      GFF.session.isRecovery = false;
       GFF.session.ready = true;
       showLogin();
       return;
     }
 
+    // Sessão normal
     try {
       GFF.session.user = session.user;
+      GFF.session.isRecovery = false;
       await loadFamilyContext(supabase, session.user.id);
       GFF.session.ready = true;
       showApp();
     } catch (err) {
       console.error(err);
-      // Sessão válida, mas sem vínculo familiar → força logout e mostra mensagem
       await supabase.auth.signOut();
       GFF.session.user = null;
       GFF.session.familyId = null;
@@ -170,12 +219,16 @@
 
     const supabase = await GFF.getSupabase();
 
-    // Listener de mudanças de autenticação
     supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_OUT" || event === "USER_DELETED") {
-        await handleSession(null);
-      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
-        await handleSession(session);
+        await handleSession(null, event);
+      } else if (
+        event === "SIGNED_IN" ||
+        event === "TOKEN_REFRESHED" ||
+        event === "INITIAL_SESSION" ||
+        event === "PASSWORD_RECOVERY"
+      ) {
+        await handleSession(session, event);
       }
     });
 
@@ -187,12 +240,24 @@
       GFF.session.ready = true;
       return;
     }
-    await handleSession(data.session);
+
+    // Se já estiver em recovery (link clicado e página recarregada)
+    if (data.session) {
+      // Verifica se é recovery pelo hash ou pelo evento
+      const hash = window.location.hash;
+      if (hash.includes("type=recovery") || GFF.session.isRecovery) {
+        await handleSession(data.session, "PASSWORD_RECOVERY");
+      } else {
+        await handleSession(data.session, "INITIAL_SESSION");
+      }
+    } else {
+      await handleSession(null, "INITIAL_SESSION");
+    }
   }
 
   async function onLoginSubmit(e) {
     e.preventDefault();
-    clearError();
+    clearErrors();
 
     const email = (els.email?.value || "").trim();
     const password = els.password?.value || "";
@@ -202,14 +267,11 @@
       return;
     }
 
-    setLoading(true);
+    setLoading(true, "login");
 
     try {
       const supabase = await GFF.getSupabase();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
         let msg = "Não foi possível entrar. Verifique seus dados.";
@@ -221,16 +283,82 @@
           msg = error.message;
         }
         showError(msg);
-        setLoading(false);
+        setLoading(false, "login");
         return;
       }
-
-      // O onAuthStateChange vai cuidar do resto
-      // Mantém loading até o handleSession finalizar
+      // onAuthStateChange cuida do resto
     } catch (err) {
       console.error(err);
       showError("Erro de conexão. Tente novamente.");
-      setLoading(false);
+      setLoading(false, "login");
+    }
+  }
+
+  async function onRecoverySubmit(e) {
+    e.preventDefault();
+    clearErrors();
+
+    const newPass = els.newPassword?.value || "";
+    const confirm = els.confirmPassword?.value || "";
+
+    if (!newPass || newPass.length < 6) {
+      showError("A nova senha deve ter pelo menos 6 caracteres.", "recovery");
+      return;
+    }
+    if (newPass !== confirm) {
+      showError("As senhas não coincidem.", "recovery");
+      return;
+    }
+
+    setLoading(true, "recovery");
+
+    try {
+      const supabase = await GFF.getSupabase();
+      const { error } = await supabase.auth.updateUser({ password: newPass });
+
+      if (error) {
+        showError(error.message || "Não foi possível atualizar a senha.", "recovery");
+        setLoading(false, "recovery");
+        return;
+      }
+
+      // Senha atualizada com sucesso → recarrega a sessão normal
+      const { data } = await supabase.auth.getSession();
+      await handleSession(data.session, "SIGNED_IN");
+    } catch (err) {
+      console.error(err);
+      showError("Erro de conexão. Tente novamente.", "recovery");
+      setLoading(false, "recovery");
+    }
+  }
+
+  async function onForgotPassword(e) {
+    e.preventDefault();
+    clearErrors();
+
+    const email = (els.email?.value || "").trim();
+    if (!email) {
+      showError("Digite seu e-mail primeiro e depois clique em “Esqueci a senha”.");
+      return;
+    }
+
+    setLoading(true, "login");
+
+    try {
+      const supabase = await GFF.getSupabase();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname
+      });
+
+      if (error) {
+        showError(error.message || "Não foi possível enviar o e-mail de recuperação.");
+      } else {
+        showError("Enviamos um link de recuperação para o seu e-mail. Verifique a caixa de entrada e o spam.");
+      }
+    } catch (err) {
+      showError("Erro de conexão. Tente novamente.");
+    } finally {
+      setLoading(false, "login");
     }
   }
 
@@ -238,10 +366,8 @@
     try {
       const supabase = await GFF.getSupabase();
       await supabase.auth.signOut();
-      // onAuthStateChange cuida da UI
     } catch (err) {
       console.error("Erro ao sair:", err);
-      // Força limpeza local mesmo assim
       GFF.session.user = null;
       GFF.session.familyId = null;
       GFF.session.familyName = null;
@@ -251,25 +377,25 @@
   }
 
   function bindEvents() {
-    if (els.loginForm) {
-      els.loginForm.addEventListener("submit", onLoginSubmit);
-    }
+    if (els.loginForm) els.loginForm.addEventListener("submit", onLoginSubmit);
+    if (els.recoveryForm) els.recoveryForm.addEventListener("submit", onRecoverySubmit);
 
     if (els.togglePass && els.password) {
       els.togglePass.addEventListener("click", () => {
         const isPass = els.password.type === "password";
         els.password.type = isPass ? "text" : "password";
         els.togglePass.textContent = isPass ? "Ocultar" : "Mostrar";
-        els.togglePass.setAttribute("aria-label", isPass ? "Ocultar senha" : "Mostrar senha");
       });
     }
 
-    if (els.logoutBtn) {
-      els.logoutBtn.addEventListener("click", onLogout);
-    }
+    if (els.forgotLink) els.forgotLink.addEventListener("click", onForgotPassword);
+    if (els.backToLogin) els.backToLogin.addEventListener("click", (e) => {
+      e.preventDefault();
+      showLogin();
+    });
+    if (els.logoutBtn) els.logoutBtn.addEventListener("click", onLogout);
   }
 
-  // Inicialização quando o DOM estiver pronto
   function start() {
     cacheElements();
     bindEvents();
