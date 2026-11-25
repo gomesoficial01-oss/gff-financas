@@ -110,6 +110,7 @@
             <small>Carregando…</small>
           </span>
         </div>
+        <button type="button" id="change-password-btn" class="logout-btn change-pass-btn">Alterar senha</button>
         <button type="button" id="logout-btn" class="logout-btn">Sair</button>
         <span class="offline-pill"><i></i> Estrutura inicial</span>
       </div>
@@ -250,5 +251,32 @@
   <script src="./supabase.js"></script>
   <script src="./auth.js"></script>
   <script src="./app.js" defer></script>
+
+  <!-- Modal Alterar Senha -->
+  <div id="change-password-modal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Alterar senha</h2>
+        <button type="button" id="change-pass-close" class="modal-close" aria-label="Fechar">×</button>
+      </div>
+      <form id="change-password-form" novalidate>
+        <label class="field">
+          <span>Nova senha</span>
+          <input type="password" id="change-new-password" autocomplete="new-password" required placeholder="Mínimo 6 caracteres" minlength="6">
+        </label>
+        <label class="field">
+          <span>Confirmar nova senha</span>
+          <input type="password" id="change-confirm-password" autocomplete="new-password" required placeholder="Repita a nova senha">
+        </label>
+        <p id="change-pass-error" class="login-error" hidden role="alert"></p>
+        <p id="change-pass-success" class="login-success" hidden role="status"></p>
+        <div class="modal-actions">
+          <button type="button" id="change-pass-cancel" class="btn-secondary">Cancelar</button>
+          <button type="submit" id="change-pass-submit" class="btn-primary">Salvar nova senha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

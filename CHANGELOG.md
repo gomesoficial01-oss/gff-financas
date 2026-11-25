@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.1 — Alterar senha logado
+
+- Adicionada tela/modal para alterar senha estando autenticado.
+- Botão "Alterar senha" na barra lateral e no perfil.
+- Validação de senha (mínimo 6 caracteres + confirmação).
+- Mensagens de sucesso e erro em português.
+
 ## 0.2.0 — Etapa 2: Autenticação
 
 - Implementada tela de login moderna (e-mail + senha).
@@ -9,11 +16,9 @@
 - Identificação do papel do usuário (owner / member).
 - Proteção do dashboard: só libera após autenticação e vínculo familiar válido.
 - Botão de sair e limpeza de sessão.
-- Mensagens de erro em português.
-- Estado de carregamento durante o login.
+- Fluxo de recuperação de senha (Esqueci a senha + tela Definir nova senha).
 - Corrigido ícone ausente (`assets/icon.svg`).
 - Atualizado service worker e manifest (cache v2).
-- Atualizado aviso do dashboard para indicar autenticação ativa.
 
 ## 0.1.0 — Etapa 1: fundação visual
 
@@ -21,7 +26,4 @@
 - Criado dashboard demonstrativo.
 - Criada navegação para os dez módulos planejados.
 - Criado layout responsivo para celular e desktop.
-- Adicionado manifest PWA, ícone e service worker para cache do shell.
-- Documentada arquitetura técnica e modelo de dados planejado.
-- Documentados testes manuais e limites da etapa.
-- Não implementados login, backend, persistência ou sincronização.
+- Adicionado manifest PWA e service worker.

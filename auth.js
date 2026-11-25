@@ -1,4 +1,4 @@
-/* GFF — Autenticação e vínculo familiar + recuperação de senha */
+/* GFF — Autenticação, vínculo familiar, recuperação e alteração de senha */
 (() => {
   "use strict";
 
@@ -39,6 +39,17 @@
     els.syncStatus = document.querySelector(".sync-status");
     els.loginTitle = document.getElementById("login-title");
     els.loginSubtitle = document.getElementById("login-subtitle");
+    // Alterar senha
+    els.changePassBtn = document.getElementById("change-password-btn");
+    els.changePassModal = document.getElementById("change-password-modal");
+    els.changePassForm = document.getElementById("change-password-form");
+    els.changeNewPass = document.getElementById("change-new-password");
+    els.changeConfirmPass = document.getElementById("change-confirm-password");
+    els.changePassError = document.getElementById("change-pass-error");
+    els.changePassSuccess = document.getElementById("change-pass-success");
+    els.changePassSubmit = document.getElementById("change-pass-submit");
+    els.changePassClose = document.getElementById("change-pass-close");
+    els.changePassCancel = document.getElementById("change-pass-cancel");
   }
 
   function showLogin() {
@@ -46,7 +57,6 @@
     if (els.loginScreen) els.loginScreen.hidden = false;
     if (els.appShell) els.appShell.hidden = true;
     document.body.classList.add("login-active");
-
     if (els.loginForm) els.loginForm.hidden = false;
     if (els.recoveryForm) els.recoveryForm.hidden = true;
     if (els.loginTitle) els.loginTitle.textContent = "Entrar na sua conta";
@@ -59,7 +69,6 @@
     if (els.loginScreen) els.loginScreen.hidden = false;
     if (els.appShell) els.appShell.hidden = true;
     document.body.classList.add("login-active");
-
     if (els.loginForm) els.loginForm.hidden = true;
     if (els.recoveryForm) els.recoveryForm.hidden = false;
     if (els.loginTitle) els.loginTitle.textContent = "Definir nova senha";
@@ -74,6 +83,33 @@
     updateFamilyUI();
   }
 
+  function openChangePasswordModal() {
+    if (!els.changePassModal) return;
+    clearChangePassMessages();
+    if (els.changeNewPass) els.changeNewPass.value = "";
+    if (els.changeConfirmPass) els.changeConfirmPass.value = "";
+    els.changePassModal.hidden = false;
+    document.body.classList.add("modal-open");
+    if (els.changeNewPass) els.changeNewPass.focus();
+  }
+
+  function closeChangePasswordModal() {
+    if (els.changePassModal) els.changePassModal.hidden = true;
+    document.body.classList.remove("modal-open");
+    clearChangePassMessages();
+  }
+
+  function clearChangePassMessages() {
+    if (els.changePassError) {
+      els.changePassError.textContent = "";
+      els.changePassError.hidden = true;
+    }
+    if (els.changePassSuccess) {
+      els.changePassSuccess.textContent = "";
+      els.changePassSuccess.hidden = true;
+    }
+  }
+
   function setLoading(isLoading, mode = "login") {
     if (mode === "login") {
       if (els.loginLoading) els.loginLoading.hidden = !isLoading;
@@ -83,18 +119,26 @@
       }
       if (els.email) els.email.disabled = isLoading;
       if (els.password) els.password.disabled = isLoading;
-    } else {
+    } else if (mode === "recovery") {
       if (els.recoveryBtn) {
         els.recoveryBtn.disabled = isLoading;
         els.recoveryBtn.textContent = isLoading ? "Salvando…" : "Salvar nova senha";
       }
       if (els.newPassword) els.newPassword.disabled = isLoading;
       if (els.confirmPassword) els.confirmPassword.disabled = isLoading;
+    } else if (mode === "change") {
+      if (els.changePassSubmit) {
+        els.changePassSubmit.disabled = isLoading;
+        els.changePassSubmit.textContent = isLoading ? "Salvando…" : "Salvar nova senha";
+      }
+      if (els.changeNewPass) els.changeNewPass.disabled = isLoading;
+      if (els.changeConfirmPass) els.changeConfirmPass.disabled = isLoading;
     }
   }
 
   function showError(msg, target = "login") {
-    const el = target === "recovery" ? els.recoveryError : els.loginError;
+    const map = { login: els.loginError, recovery: els.recoveryError, change: els.changePassError };
+    const el = map[target];
     if (el) {
       el.textContent = msg;
       el.hidden = false;
@@ -102,24 +146,16 @@
   }
 
   function clearErrors() {
-    if (els.loginError) {
-      els.loginError.textContent = "";
-      els.loginError.hidden = true;
-    }
-    if (els.recoveryError) {
-      els.recoveryError.textContent = "";
-      els.recoveryError.hidden = true;
-    }
+    [els.loginError, els.recoveryError].forEach(el => {
+      if (el) { el.textContent = ""; el.hidden = true; }
+    });
   }
 
   function updateFamilyUI() {
     const name = GFF.session.familyName || "Minha família";
     const roleLabel =
-      GFF.session.role === "owner"
-        ? "Proprietário"
-        : GFF.session.role === "member"
-          ? "Membro"
-          : "Acesso familiar";
+      GFF.session.role === "owner" ? "Proprietário" :
+      GFF.session.role === "member" ? "Membro" : "Acesso familiar";
 
     if (els.familyChip) els.familyChip.textContent = name;
     if (els.familySub) els.familySub.textContent = roleLabel;
@@ -149,9 +185,7 @@
     }
 
     if (!memberships || memberships.length === 0) {
-      throw new Error(
-        "Sua conta ainda não está vinculada a nenhuma família. Solicite um convite ao proprietário."
-      );
+      throw new Error("Sua conta ainda não está vinculada a nenhuma família. Solicite um convite ao proprietário.");
     }
 
     const membership = memberships[0];
@@ -164,17 +198,12 @@
       .eq("id", membership.family_id)
       .single();
 
-    if (famErr || !family) {
-      GFF.session.familyName = "Família";
-    } else {
-      GFF.session.familyName = family.name || "Família";
-    }
+    GFF.session.familyName = (!famErr && family) ? (family.name || "Família") : "Família";
   }
 
   async function handleSession(session, event) {
     const supabase = await GFF.getSupabase();
 
-    // Modo recuperação de senha
     if (event === "PASSWORD_RECOVERY") {
       GFF.session.user = session?.user || null;
       GFF.session.isRecovery = true;
@@ -194,7 +223,6 @@
       return;
     }
 
-    // Sessão normal
     try {
       GFF.session.user = session.user;
       GFF.session.isRecovery = false;
@@ -216,7 +244,6 @@
 
   async function initAuth() {
     cacheElements();
-
     const supabase = await GFF.getSupabase();
 
     supabase.auth.onAuthStateChange(async (event, session) => {
@@ -232,7 +259,6 @@
       }
     });
 
-    // Verifica sessão inicial
     const { data, error } = await supabase.auth.getSession();
     if (error) {
       console.error("Erro ao obter sessão:", error);
@@ -241,10 +267,8 @@
       return;
     }
 
-    // Se já estiver em recovery (link clicado e página recarregada)
     if (data.session) {
-      // Verifica se é recovery pelo hash ou pelo evento
-      const hash = window.location.hash;
+      const hash = window.location.hash || "";
       if (hash.includes("type=recovery") || GFF.session.isRecovery) {
         await handleSession(data.session, "PASSWORD_RECOVERY");
       } else {
@@ -258,7 +282,6 @@
   async function onLoginSubmit(e) {
     e.preventDefault();
     clearErrors();
-
     const email = (els.email?.value || "").trim();
     const password = els.password?.value || "";
 
@@ -268,27 +291,18 @@
     }
 
     setLoading(true, "login");
-
     try {
       const supabase = await GFF.getSupabase();
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-
       if (error) {
         let msg = "Não foi possível entrar. Verifique seus dados.";
-        if (error.message?.includes("Invalid login credentials")) {
-          msg = "E-mail ou senha incorretos.";
-        } else if (error.message?.includes("Email not confirmed")) {
-          msg = "Confirme seu e-mail antes de entrar.";
-        } else if (error.message) {
-          msg = error.message;
-        }
+        if (error.message?.includes("Invalid login credentials")) msg = "E-mail ou senha incorretos.";
+        else if (error.message?.includes("Email not confirmed")) msg = "Confirme seu e-mail antes de entrar.";
+        else if (error.message) msg = error.message;
         showError(msg);
         setLoading(false, "login");
-        return;
       }
-      // onAuthStateChange cuida do resto
     } catch (err) {
-      console.error(err);
       showError("Erro de conexão. Tente novamente.");
       setLoading(false, "login");
     }
@@ -297,7 +311,6 @@
   async function onRecoverySubmit(e) {
     e.preventDefault();
     clearErrors();
-
     const newPass = els.newPassword?.value || "";
     const confirm = els.confirmPassword?.value || "";
 
@@ -311,45 +324,79 @@
     }
 
     setLoading(true, "recovery");
-
     try {
       const supabase = await GFF.getSupabase();
       const { error } = await supabase.auth.updateUser({ password: newPass });
-
       if (error) {
         showError(error.message || "Não foi possível atualizar a senha.", "recovery");
         setLoading(false, "recovery");
         return;
       }
-
-      // Senha atualizada com sucesso → recarrega a sessão normal
       const { data } = await supabase.auth.getSession();
       await handleSession(data.session, "SIGNED_IN");
     } catch (err) {
-      console.error(err);
       showError("Erro de conexão. Tente novamente.", "recovery");
       setLoading(false, "recovery");
+    }
+  }
+
+  async function onChangePasswordSubmit(e) {
+    e.preventDefault();
+    clearChangePassMessages();
+
+    const newPass = els.changeNewPass?.value || "";
+    const confirm = els.changeConfirmPass?.value || "";
+
+    if (!newPass || newPass.length < 6) {
+      showError("A nova senha deve ter pelo menos 6 caracteres.", "change");
+      return;
+    }
+    if (newPass !== confirm) {
+      showError("As senhas não coincidem.", "change");
+      return;
+    }
+
+    setLoading(true, "change");
+    try {
+      const supabase = await GFF.getSupabase();
+      const { error } = await supabase.auth.updateUser({ password: newPass });
+
+      if (error) {
+        showError(error.message || "Não foi possível atualizar a senha.", "change");
+        setLoading(false, "change");
+        return;
+      }
+
+      if (els.changePassSuccess) {
+        els.changePassSuccess.textContent = "Senha alterada com sucesso!";
+        els.changePassSuccess.hidden = false;
+      }
+      if (els.changeNewPass) els.changeNewPass.value = "";
+      if (els.changeConfirmPass) els.changeConfirmPass.value = "";
+      setLoading(false, "change");
+
+      // Fecha o modal após 1,5s
+      setTimeout(() => closeChangePasswordModal(), 1500);
+    } catch (err) {
+      showError("Erro de conexão. Tente novamente.", "change");
+      setLoading(false, "change");
     }
   }
 
   async function onForgotPassword(e) {
     e.preventDefault();
     clearErrors();
-
     const email = (els.email?.value || "").trim();
     if (!email) {
       showError("Digite seu e-mail primeiro e depois clique em “Esqueci a senha”.");
       return;
     }
-
     setLoading(true, "login");
-
     try {
       const supabase = await GFF.getSupabase();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + window.location.pathname
       });
-
       if (error) {
         showError(error.message || "Não foi possível enviar o e-mail de recuperação.");
       } else {
@@ -367,7 +414,6 @@
       const supabase = await GFF.getSupabase();
       await supabase.auth.signOut();
     } catch (err) {
-      console.error("Erro ao sair:", err);
       GFF.session.user = null;
       GFF.session.familyId = null;
       GFF.session.familyName = null;
@@ -379,6 +425,7 @@
   function bindEvents() {
     if (els.loginForm) els.loginForm.addEventListener("submit", onLoginSubmit);
     if (els.recoveryForm) els.recoveryForm.addEventListener("submit", onRecoverySubmit);
+    if (els.changePassForm) els.changePassForm.addEventListener("submit", onChangePasswordSubmit);
 
     if (els.togglePass && els.password) {
       els.togglePass.addEventListener("click", () => {
@@ -389,11 +436,21 @@
     }
 
     if (els.forgotLink) els.forgotLink.addEventListener("click", onForgotPassword);
-    if (els.backToLogin) els.backToLogin.addEventListener("click", (e) => {
-      e.preventDefault();
-      showLogin();
-    });
+    if (els.backToLogin) els.backToLogin.addEventListener("click", (e) => { e.preventDefault(); showLogin(); });
     if (els.logoutBtn) els.logoutBtn.addEventListener("click", onLogout);
+
+    // Alterar senha
+    if (els.changePassBtn) els.changePassBtn.addEventListener("click", openChangePasswordModal);
+    if (els.profileBtn) els.profileBtn.addEventListener("click", openChangePasswordModal);
+    if (els.changePassClose) els.changePassClose.addEventListener("click", closeChangePasswordModal);
+    if (els.changePassCancel) els.changePassCancel.addEventListener("click", closeChangePasswordModal);
+
+    // Fechar modal clicando fora
+    if (els.changePassModal) {
+      els.changePassModal.addEventListener("click", (e) => {
+        if (e.target === els.changePassModal) closeChangePasswordModal();
+      });
+    }
   }
 
   function start() {
