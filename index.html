@@ -1,282 +1,58 @@
-<!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101827">
-  <meta name="description" content="Gestão Financeira Familiar — organização financeira e doméstica compartilhada.">
-  <title>GFF — Gestão Familiar</title>
-  <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./styles.css">
-  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-</head>
-<body>
-  <!-- Tela de Login / Recuperação -->
-  <div id="login-screen" class="login-screen" hidden>
-    <div class="login-card">
-      <div class="login-brand">
-        <span class="brand-mark">G</span>
-        <div>
-          <strong>GFF</strong>
-          <small>GESTÃO FINANCEIRA FAMILIAR</small>
-        </div>
-      </div>
-      <h1 id="login-title">Entrar na sua conta</h1>
-      <p id="login-subtitle" class="login-subtitle">Acesse o espaço financeiro da sua família de forma segura.</p>
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GFF — Gestão Financeira Familiar</title>
+<meta name="theme-color" content="#0F6B5C"><link rel="manifest" href="manifest.json"><link rel="icon" href="assets/icon.svg">
+<link rel="stylesheet" href="styles.css"></head><body>
 
-      <!-- Formulário de Login -->
-      <form id="login-form" class="login-form" novalidate>
-        <label class="field">
-          <span>E-mail</span>
-          <input type="email" id="login-email" name="email" autocomplete="username" required placeholder="seu@email.com" inputmode="email">
-        </label>
+<section id="t-login" class="tela" hidden><form class="cx" id="f-login">
+<h1>GFF</h1><p class="mut">Gestão Financeira Familiar</p>
+<label for="l-email">E-mail</label><input id="l-email" type="email" autocomplete="username" required>
+<label for="l-senha">Senha</label><input id="l-senha" type="password" autocomplete="current-password" required>
+<button class="pri" type="submit">Entrar</button>
+<button class="lnk" type="button" id="b-esqueci">Esqueci a senha</button>
+<div class="msg" id="m-login" role="alert"></div></form></section>
 
-        <label class="field">
-          <span>Senha</span>
-          <div class="password-wrap">
-            <input type="password" id="login-password" name="password" autocomplete="current-password" required placeholder="Sua senha">
-            <button type="button" id="toggle-password" class="toggle-pass" aria-label="Mostrar senha">Mostrar</button>
-          </div>
-        </label>
+<section id="t-esqueci" class="tela" hidden><form class="cx" id="f-esqueci">
+<h1>Recuperar senha</h1><p class="mut">Enviaremos um link para o seu e-mail.</p>
+<label for="e-email">E-mail</label><input id="e-email" type="email" required>
+<button class="pri" type="submit">Enviar link</button>
+<button class="lnk" type="button" id="b-voltar">Voltar ao login</button>
+<div class="msg" id="m-esqueci" role="alert"></div></form></section>
 
-        <p id="login-error" class="login-error" hidden role="alert"></p>
+<section id="t-nova" class="tela" hidden><form class="cx" id="f-nova">
+<h1>Definir nova senha</h1>
+<label for="n-senha">Nova senha (mín. 8 caracteres)</label><input id="n-senha" type="password" autocomplete="new-password" minlength="8" required>
+<label for="n-senha2">Repita a nova senha</label><input id="n-senha2" type="password" autocomplete="new-password" minlength="8" required>
+<button class="pri" type="submit">Salvar senha</button>
+<div class="msg" id="m-nova" role="alert"></div></form></section>
 
-        <button type="submit" id="login-btn" class="btn-primary">Entrar</button>
+<section id="t-sem" class="tela" hidden><div class="cx"><h1>Sem família vinculada</h1>
+<p class="mut">Sua conta existe, mas ainda não está vinculada a uma família. Peça ao proprietário para vincular.</p>
+<button class="pri sair" type="button">Sair</button></div></section>
 
-        <p class="forgot-wrap">
-          <a href="#" id="forgot-password-link">Esqueci a senha</a>
-        </p>
-      </form>
+<section id="t-app" hidden>
+<header class="top"><div><b id="h-fam">Família</b><small id="h-papel"></small></div>
+<div><button type="button" id="b-alterar">Alterar senha</button> <button type="button" class="sair">Sair</button></div></header>
+<nav aria-label="Módulos"><button type="button" data-mod="contas" aria-current="true">Contas</button></nav>
+<main id="mod-contas">
+<p class="mut">Saldo total</p><p class="total" id="total">R$ 0,00</p>
+<h2>Contas</h2><div id="lista"></div>
+<form id="f-conta" class="cx" style="max-width:none;margin-top:16px"><h2>Nova conta</h2>
+<label for="c-nome">Nome</label><input id="c-nome" required maxlength="60" placeholder="Ex.: Nubank, Carteira">
+<div class="linha"><div><label for="c-tipo">Tipo</label><select id="c-tipo"><option value="corrente">Conta corrente</option><option value="poupanca">Poupança</option><option value="carteira">Carteira</option><option value="investimento">Investimento</option></select></div>
+<div><label for="c-saldo">Saldo inicial (R$)</label><input id="c-saldo" type="number" step="0.01" value="0" required></div></div>
+<button class="pri" type="submit">Adicionar conta</button><div class="msg" id="m-conta" role="alert"></div></form>
+</main></section>
 
-      <!-- Formulário de Nova Senha (recuperação) -->
-      <form id="recovery-form" class="login-form" hidden novalidate>
-        <label class="field">
-          <span>Nova senha</span>
-          <input type="password" id="new-password" name="new-password" autocomplete="new-password" required placeholder="Mínimo 6 caracteres" minlength="6">
-        </label>
+<dialog id="d-senha"><form id="f-alt"><h2>Alterar senha</h2>
+<label for="a-senha">Nova senha (mín. 8 caracteres)</label><input id="a-senha" type="password" autocomplete="new-password" minlength="8" required>
+<label for="a-senha2">Repita a nova senha</label><input id="a-senha2" type="password" autocomplete="new-password" minlength="8" required>
+<button class="pri" type="submit">Salvar senha</button>
+<button class="lnk" type="button" id="a-cancel">Cancelar</button>
+<div class="msg" id="m-alt" role="alert"></div></form></dialog>
 
-        <label class="field">
-          <span>Confirmar nova senha</span>
-          <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password" required placeholder="Repita a nova senha">
-        </label>
-
-        <p id="recovery-error" class="login-error" hidden role="alert"></p>
-
-        <button type="submit" id="recovery-btn" class="btn-primary">Salvar nova senha</button>
-
-        <p class="forgot-wrap">
-          <a href="#" id="back-to-login">Voltar para o login</a>
-        </p>
-      </form>
-
-      <div id="login-loading" class="login-loading" hidden>
-        <div class="spinner"></div>
-        <span>Verificando acesso…</span>
-      </div>
-
-      <p class="login-footer">Somente membros autorizados da família têm acesso.</p>
-    </div>
-  </div>
-
-  <!-- Aplicativo principal (protegido) -->
-  <div class="app-shell" hidden>
-    <aside class="sidebar" aria-label="Navegação principal">
-      <a class="brand" href="#" aria-label="GFF início">
-        <span class="brand-mark">G</span>
-        <span><strong>GFF</strong><small>GESTÃO FAMILIAR</small></span>
-      </a>
-      <div class="nav-label">VISÃO GERAL</div>
-      <nav class="nav-list">
-        <button class="nav-item active" data-view="dashboard"><span>▦</span> Dashboard</button>
-        <button class="nav-item" data-view="budget"><span>◫</span> Orçamento</button>
-        <button class="nav-item" data-view="transactions"><span>↕</span> Receitas e despesas</button>
-        <div class="nav-label">CASA</div>
-        <button class="nav-item" data-view="shopping"><span>🛒</span> Lista de compras</button>
-        <button class="nav-item" data-view="inventory"><span>▤</span> Estoque</button>
-        <div class="nav-label">PLANEJAMENTO</div>
-        <button class="nav-item" data-view="cards"><span>▣</span> Cartões e parcelas</button>
-        <button class="nav-item" data-view="bills"><span>▧</span> Contas e vencimentos</button>
-        <button class="nav-item" data-view="goals"><span>◎</span> Projetos de vida</button>
-        <button class="nav-item" data-view="reports"><span>▥</span> Relatórios</button>
-        <button class="nav-item" data-view="assistant"><span>✧</span> Assistente financeiro</button>
-      </nav>
-      <div class="sidebar-bottom">
-        <div class="family-chip">
-          <span class="avatar">F</span>
-          <span>
-            <strong>Minha família</strong>
-            <small>Carregando…</small>
-          </span>
-        </div>
-        <button type="button" id="change-password-btn" class="logout-btn change-pass-btn">Alterar senha</button>
-        <button type="button" id="logout-btn" class="logout-btn">Sair</button>
-        <span class="offline-pill"><i></i> Estrutura inicial</span>
-      </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button>
-        <div>
-          <p class="eyebrow">GESTÃO FINANCEIRA FAMILIAR</p>
-          <h1 id="pageTitle">Dashboard</h1>
-        </div>
-        <div class="top-actions">
-          <span class="sync-status"><i></i> Conectando…</span>
-          <button class="profile" aria-label="Perfil">F</button>
-        </div>
-      </header>
-
-      <section class="view active-view" id="view-dashboard">
-        <div class="welcome-row">
-          <div>
-            <h2>Visão geral da família</h2>
-            <p>Uma visão clara do dinheiro, dos compromissos e dos objetivos.</p>
-          </div>
-          <span class="month-tag">MÊS ATUAL</span>
-        </div>
-        <div class="notice">
-          <strong>Autenticação ativa</strong>
-          <span>Você está logado. Os dados financeiros ainda serão conectados nas próximas etapas. Nenhum valor real está sendo manipulado neste momento.</span>
-        </div>
-        <div class="metrics">
-          <article class="metric-card featured">
-            <div class="metric-top"><span>Saldo disponível</span><span class="metric-icon">R$</span></div>
-            <strong>R$ 0,00</strong>
-            <small>Será calculado pelas contas e movimentações confirmadas.</small>
-          </article>
-          <article class="metric-card">
-            <div class="metric-top"><span>Receitas do mês</span><span class="metric-icon green">↗</span></div>
-            <strong>R$ 0,00</strong>
-            <small>Entradas registradas</small>
-          </article>
-          <article class="metric-card">
-            <div class="metric-top"><span>Despesas do mês</span><span class="metric-icon coral">↘</span></div>
-            <strong>R$ 0,00</strong>
-            <small>Saídas confirmadas</small>
-          </article>
-          <article class="metric-card">
-            <div class="metric-top"><span>Compromissos futuros</span><span class="metric-icon purple">▣</span></div>
-            <strong>R$ 0,00</strong>
-            <small>Parcelas e contas previstas</small>
-          </article>
-        </div>
-        <div class="content-grid">
-          <article class="panel budget-panel">
-            <div class="panel-heading">
-              <div>
-                <h3>Orçamento por categoria</h3>
-                <p>Planejado versus realizado</p>
-              </div>
-              <span class="subtle-tag">Aguardando dados</span>
-            </div>
-            <div class="empty-chart">
-              <div class="donut"><span>—</span></div>
-              <div>
-                <strong>Seu orçamento aparecerá aqui</strong>
-                <p>Depois de cadastrar a renda e definir as categorias, você acompanhará a distribuição do dinheiro.</p>
-              </div>
-            </div>
-            <div class="legend">
-              <span><i class="dot blue"></i> Essenciais</span>
-              <span><i class="dot green"></i> Segurança</span>
-              <span><i class="dot purple"></i> Projetos</span>
-              <span><i class="dot orange"></i> Lazer</span>
-            </div>
-          </article>
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <h3>Próximos compromissos</h3>
-                <p>Contas e faturas a vencer</p>
-              </div>
-              <button class="text-button" data-go="bills">Ver todos</button>
-            </div>
-            <div class="empty-state">
-              <span class="empty-icon">▧</span>
-              <strong>Nenhum compromisso cadastrado</strong>
-              <p>Quando você adicionar contas e cartões, os próximos vencimentos serão exibidos aqui.</p>
-            </div>
-          </article>
-        </div>
-        <div class="content-grid lower-grid">
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <h3>Atalhos</h3>
-                <p>Ações frequentes</p>
-              </div>
-            </div>
-            <div class="quick-actions">
-              <button data-go="transactions"><b>＋</b><span>Registrar despesa</span></button>
-              <button data-go="shopping"><b>🛒</b><span>Lista de compras</span></button>
-              <button data-go="inventory"><b>▤</b><span>Consultar estoque</span></button>
-              <button data-go="goals"><b>◎</b><span>Criar objetivo</span></button>
-            </div>
-          </article>
-          <article class="panel">
-            <div class="panel-heading">
-              <div>
-                <h3>Estoque doméstico</h3>
-                <p>Produtos que precisam de atenção</p>
-              </div>
-              <button class="text-button" data-go="inventory">Abrir estoque</button>
-            </div>
-            <div class="empty-state compact">
-              <span class="empty-icon">▤</span>
-              <strong>Seu estoque ainda não foi cadastrado</strong>
-              <p>Os itens comprados poderão atualizar o estoque após a confirmação da compra.</p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="view" id="view-placeholder">
-        <article class="panel placeholder-panel">
-          <span class="placeholder-icon" id="placeholderIcon">✧</span>
-          <p class="eyebrow">MÓDULO PLANEJADO</p>
-          <h2 id="placeholderTitle">Orçamento</h2>
-          <p id="placeholderText">Este módulo será desenvolvido nas próximas etapas, mantendo a arquitetura e os padrões definidos.</p>
-          <span class="subtle-tag">Ainda não conectado ao banco de dados</span>
-        </article>
-      </section>
-      <footer>GFF · Gestão Familiar Financeira <span>Etapa 2 · Autenticação</span></footer>
-    </main>
-  </div>
-
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./supabase.js"></script>
-  <script src="./auth.js"></script>
-  <script src="./app.js" defer></script>
-
-  <!-- Modal Alterar Senha -->
-  <div id="change-password-modal" class="modal-overlay" hidden>
-    <div class="modal-card">
-      <div class="modal-header">
-        <h2>Alterar senha</h2>
-        <button type="button" id="change-pass-close" class="modal-close" aria-label="Fechar">×</button>
-      </div>
-      <form id="change-password-form" novalidate>
-        <label class="field">
-          <span>Nova senha</span>
-          <input type="password" id="change-new-password" autocomplete="new-password" required placeholder="Mínimo 6 caracteres" minlength="6">
-        </label>
-        <label class="field">
-          <span>Confirmar nova senha</span>
-          <input type="password" id="change-confirm-password" autocomplete="new-password" required placeholder="Repita a nova senha">
-        </label>
-        <p id="change-pass-error" class="login-error" hidden role="alert"></p>
-        <p id="change-pass-success" class="login-success" hidden role="status"></p>
-        <div class="modal-actions">
-          <button type="button" id="change-pass-cancel" class="btn-secondary">Cancelar</button>
-          <button type="submit" id="change-pass-submit" class="btn-primary">Salvar nova senha</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-</body>
-</html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="supabase.js"></script><script src="auth.js"></script><script src="app.js"></script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js"))</script>
+</body></html>

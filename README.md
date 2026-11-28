@@ -1,49 +1,12 @@
 # GFF — Gestão Financeira Familiar
+App PWA estático (GitHub Pages) + Supabase. Interface em português brasileiro.
 
-Aplicativo de gestão financeira e doméstica familiar.
+## Publicar
+1. Substitua os arquivos na raiz do repositório e envie para `main`.
+2. No Supabase (SQL Editor), rode `supabase/001_contas.sql` uma vez.
+3. Em Authentication → URL Configuration, inclua `https://gomesoficial01-oss.github.io/gff-financas/` em Redirect URLs (necessário para "Esqueci a senha").
+4. Se o app antigo aparecer no celular, feche e reabra uma vez para o novo service worker assumir.
 
-## Versão atual
-
-**Etapa 2 — Autenticação**
-
-- Tela de login com e-mail e senha
-- Sessão persistente via Supabase Auth
-- Verificação automática de sessão ao abrir
-- Identificação da família e do papel do usuário (owner/member)
-- Proteção do painel (só libera após autenticação + vínculo familiar)
-- Botão de sair
-- Ícone PWA e service worker corrigidos
-
-## Como publicar no GitHub Pages
-
-1. Extraia o conteúdo desta pasta na raiz do repositório `gff-financas` (substituindo os arquivos existentes).
-2. Envie para o branch `main`.
-3. Aguarde a atualização do GitHub Pages (geralmente 1–2 minutos).
-4. Abra: https://gomesoficial01-oss.github.io/gff-financas/
-
-## Teste de login
-
-Use a conta do proprietário já cadastrada:
-
-- E-mail: `gomesoficial01@gmail.com`
-- Senha: a senha que você definiu no Supabase Auth
-
-Após o login, o nome da família e o papel devem aparecer na barra lateral.
-
-## Estrutura
-
-- `index.html` — interface + tela de login
-- `styles.css` — visual + estilos da tela de login
-- `app.js` — navegação
-- `supabase.js` — cliente Supabase (chave pública)
-- `auth.js` — lógica de autenticação e vínculo familiar
-- `manifest.json` / `sw.js` — PWA
-- `assets/icon.svg` — ícone
-
+Nunca coloque chave `service_role` ou senhas no frontend.
 ## Próximas etapas
-
-- Convite seguro do segundo usuário
-- Contas e movimentações financeiras
-- Orçamentos, cartões, estoque, etc.
-
-**Nunca coloque a chave `service_role` ou senhas no frontend.**
+Receitas/despesas, orçamento, contas a pagar, cartões, compras/estoque, metas, relatórios, offline.

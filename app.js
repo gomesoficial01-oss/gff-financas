@@ -1,70 +1,37 @@
-(() => {
-  "use strict";
+const brl = v => Number(v).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const TIPOS = { corrente: "Conta corrente", poupanca: "Poupança", carteira: "Carteira", investimento: "Investimento" };
 
-  const titles = {
-    dashboard: ["Dashboard", "▦", "Visão geral do dinheiro e dos compromissos."],
-    budget: ["Orçamento", "◫", "Planejamento de receitas, categorias e limites mensais."],
-    transactions: ["Receitas e despesas", "↕", "Registro de movimentações financeiras e histórico."],
-    shopping: ["Lista de compras", "🛒", "Listas compartilhadas, fechamento de compras e integração com estoque."],
-    inventory: ["Estoque", "▤", "Produtos da casa, quantidades, níveis mínimos e sugestões de reposição."],
-    cards: ["Cartões e parcelas", "▣", "Cartões, compras parceladas, faturas e pagamentos."],
-    bills: ["Contas e vencimentos", "▧", "Contas recorrentes, calendário e alertas."],
-    goals: ["Projetos de vida", "◎", "Metas, reserva de emergência e acompanhamento dos objetivos."],
-    reports: ["Relatórios", "▥", "Comparações mensais, categorias e evolução financeira."],
-    assistant: ["Assistente financeiro", "✧", "Análises e recomendações. A IA não altera dados financeiros."]
-  };
-
-  function navigate(view) {
-    const data = titles[view] || titles.dashboard;
-    const navButtons = [...document.querySelectorAll("[data-view]")];
-    const dashboard = document.getElementById("view-dashboard");
-    const placeholder = document.getElementById("view-placeholder");
-
-    navButtons.forEach(button => button.classList.toggle("active", button.dataset.view === view));
-    if (dashboard) dashboard.classList.toggle("active-view", view === "dashboard");
-    if (placeholder) placeholder.classList.toggle("active-view", view !== "dashboard");
-
-    const pageTitle = document.getElementById("pageTitle");
-    const placeholderTitle = document.getElementById("placeholderTitle");
-    const placeholderIcon = document.getElementById("placeholderIcon");
-    const placeholderText = document.getElementById("placeholderText");
-
-    if (pageTitle) pageTitle.textContent = data[0];
-    if (placeholderTitle) placeholderTitle.textContent = data[0];
-    if (placeholderIcon) placeholderIcon.textContent = data[1];
-    if (placeholderText) placeholderText.textContent = data[2] + " Este módulo será implementado em uma etapa própria.";
-
-    const sidebar = document.querySelector(".sidebar");
-    if (sidebar) sidebar.classList.remove("open");
-  }
-
-  function bindNavigation() {
-    document.querySelectorAll("[data-view]").forEach(button => {
-      button.addEventListener("click", () => navigate(button.dataset.view));
-    });
-    document.querySelectorAll("[data-go]").forEach(button => {
-      button.addEventListener("click", () => navigate(button.dataset.go));
-    });
-    const mobileMenu = document.getElementById("mobileMenu");
-    if (mobileMenu) {
-      mobileMenu.addEventListener("click", () => {
-        const sidebar = document.querySelector(".sidebar");
-        if (sidebar) sidebar.classList.toggle("open");
-      });
+async function listarContas() {
+  const { data, error } = await sb.from("accounts").select("id,name,type,initial_balance").eq("family_id", GFF.familia).order("created_at");
+  const el = document.getElementById("lista");
+  if (error) { el.innerHTML = '<div class="vazio">Não foi possível carregar as contas. Rode o SQL em supabase/001_contas.sql.</div>'; return; }
+  document.getElementById("total").textContent = brl(data.reduce((s, c) => s + Number(c.initial_balance), 0));
+  el.innerHTML = "";
+  if (!data.length) { el.innerHTML = '<div class="vazio">Nenhuma conta ainda. Adicione a primeira abaixo.</div>'; return; }
+  data.forEach(c => {
+    const d = document.createElement("div"); d.className = "item";
+    const i = document.createElement("div"), n = document.createElement("b"), t = document.createElement("div");
+    n.textContent = c.name; t.className = "mut"; t.textContent = TIPOS[c.type] || c.type; i.append(n, t);
+    const v = document.createElement("span"); v.className = "v" + (c.initial_balance < 0 ? " neg" : ""); v.textContent = brl(c.initial_balance);
+    d.append(i, v);
+    if (GFF.papel === "owner") {
+      const x = document.createElement("button"); x.textContent = "Excluir"; x.setAttribute("aria-label", "Excluir conta " + c.name);
+      x.onclick = async () => { if (confirm("Excluir a conta " + c.name + "?")) { await sb.from("accounts").delete().eq("id", c.id); listarContas(); } };
+      d.append(x);
     }
-  }
-
-  // Service Worker
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
-    });
-  }
-
-  // Inicializa navegação assim que possível
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bindNavigation);
-  } else {
-    bindNavigation();
-  }
-})();
+    el.append(d);
+  });
+}
+document.getElementById("f-conta").onsubmit = async e => {
+  e.preventDefault();
+  const m = document.getElementById("m-conta");
+  const { error } = await sb.from("accounts").insert({
+    family_id: GFF.familia, created_by: GFF.userId,
+    name: document.getElementById("c-nome").value.trim(),
+    type: document.getElementById("c-tipo").value,
+    initial_balance: Number(document.getElementById("c-saldo").value)
+  });
+  m.className = "msg " + (error ? "erro" : "ok"); m.textContent = error ? "Não foi possível salvar a conta." : "Conta adicionada.";
+  if (!error) { e.target.reset(); listarContas(); }
+};
+window.onEntrar = listarContas;
