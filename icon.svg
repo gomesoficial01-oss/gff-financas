@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="GFF">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6c91f4"/>
-      <stop offset="100%" stop-color="#416bd4"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="#101827"/>
-  <rect x="48" y="48" width="416" height="416" rx="88" fill="url(#g)"/>
-  <text x="256" y="320" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="220" font-weight="800" fill="#ffffff">G</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="110" fill="#0F6B5C"/><path d="M150 330V190h130M150 260h100" stroke="#fff" stroke-width="44" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="350" cy="310" r="46" fill="#E0A100"/></svg>
